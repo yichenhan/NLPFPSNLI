@@ -46,10 +46,12 @@ def main():
                       help='Limit the number of examples to train on.')
     argp.add_argument('--max_eval_samples', type=int, default=None,
                       help='Limit the number of examples to evaluate on.')
+    argp.add_argument('--lex_dataset', type=bool, default=False,
+                      help="""This argument overrides the default dataset with lexical inference analysis dataset""")
 
+    
     training_args, args = argp.parse_args_into_dataclasses()
 
-    # Dataset selection
     if args.dataset.endswith('.json') or args.dataset.endswith('.jsonl'):
         dataset_id = None
         # Load from local json/jsonl file
@@ -83,8 +85,12 @@ def main():
         prepare_train_dataset = lambda exs: prepare_train_dataset_qa(exs, tokenizer)
         prepare_eval_dataset = lambda exs: prepare_validation_dataset_qa(exs, tokenizer)
     elif args.task == 'nli':
-        prepare_train_dataset = prepare_eval_dataset = \
-            lambda exs: prepare_dataset_nli(exs, tokenizer, args.max_length)
+        if args.lex_dataset:
+            prepare_train_dataset = prepare_eval_dataset = \
+                lambda exs: prepare_dataset_nli(exs, tokenizer, args.max_length, 'sentence1', 'sentence2', 'gold_label')
+        else:
+            prepare_train_dataset = prepare_eval_dataset = \
+                lambda exs: prepare_dataset_nli(exs, tokenizer, args.max_length)
         # prepare_eval_dataset = prepare_dataset_nli
     else:
         raise ValueError('Unrecognized task name: {}'.format(args.task))
