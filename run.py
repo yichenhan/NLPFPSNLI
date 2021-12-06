@@ -2,7 +2,7 @@ import datasets
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, \
     AutoModelForQuestionAnswering, Trainer, TrainingArguments, HfArgumentParser
 from helpers import prepare_dataset_nli, prepare_train_dataset_qa, \
-    prepare_validation_dataset_qa, QuestionAnsweringTrainer, compute_accuracy
+    prepare_validation_dataset_qa, QuestionAnsweringTrainer, compute_accuracy, tsv2json
 import os
 import json
 
@@ -46,11 +46,16 @@ def main():
                       help='Limit the number of examples to train on.')
     argp.add_argument('--max_eval_samples', type=int, default=None,
                       help='Limit the number of examples to evaluate on.')
-    argp.add_argument('--lex_dataset', type=bool, default=False,
+    argp.add_argument('--lex_dataset', default=False, action = 'store_true',
                       help="""This argument overrides the default dataset with lexical inference analysis dataset""")
+    argp.add_argument('--tsv', default=False, action = 'store_true',
+                      help="""This arguement allows you to specify tsv to JSON conversion""")
 
     
     training_args, args = argp.parse_args_into_dataclasses()
+    
+    if args.tsv:
+        args.dataset = tsv2json(args.dataset, "convertedTSVdata.json")
 
     if args.dataset.endswith('.json') or args.dataset.endswith('.jsonl'):
         dataset_id = None
@@ -81,13 +86,16 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(args.model, use_fast=True)
 
     # Select the dataset preprocessing function (these functions are defined in helpers.py)
+    print(args.lex_dataset)
     if args.task == 'qa':
         prepare_train_dataset = lambda exs: prepare_train_dataset_qa(exs, tokenizer)
         prepare_eval_dataset = lambda exs: prepare_validation_dataset_qa(exs, tokenizer)
     elif args.task == 'nli':
         if args.lex_dataset:
+            print("Sup bitch")
             prepare_train_dataset = prepare_eval_dataset = \
-                lambda exs: prepare_dataset_nli(exs, tokenizer, args.max_length, 'sentence1', 'sentence2', 'gold_label')
+                lambda exs: prepare_dataset_nli(exs, tokenizer, args.max_length,
+                                                premiseStr= 'sentence1', hypothesisStr='sentence2', labelStr ='gold_label')
         else:
             prepare_train_dataset = prepare_eval_dataset = \
                 lambda exs: prepare_dataset_nli(exs, tokenizer, args.max_length)
