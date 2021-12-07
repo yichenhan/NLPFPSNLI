@@ -8,20 +8,49 @@ from tqdm.auto import tqdm
 
 QA_MAX_ANSWER_LENGTH = 30
 
+import json
+  
+def tsv2json(input_file, output_file):
+    arr = []
+    file = open(input_file, 'r')
+    a = file.readline()
+      
+    # The first line consist of headings of the record 
+    # so we will store it in an array and move to 
+    # next line in input_file.
+    titles = [t.strip() for t in a.split('\t')]
+    for line in file:
+        d = {}
+        for t, f in zip(titles, line.split('\t')):
+            
+              # Convert each row into dictionary with keys as titles
+            d[t] = f.strip()
+              
+        # we will use strip to remove '\n'.
+        arr.append(d)
+          
+        # we will append all the individual dictionaires into list 
+        # and dump into file.
+    filename = output_file
+    with open(output_file, 'w', encoding='utf-8') as output_file:
+        output_file.write(json.dumps(arr, indent=4))
+    return filename
+
 
 # This function preprocesses an NLI dataset, tokenizing premises and hypotheses.
-def prepare_dataset_nli(examples, tokenizer, max_seq_length=None):
+def prepare_dataset_nli(examples, tokenizer, max_seq_length=None,
+                        premiseStr = 'premise', hypothesisStr = 'hypothesis', labelStr = 'label'):
     max_seq_length = tokenizer.model_max_length if max_seq_length is None else max_seq_length
 
     tokenized_examples = tokenizer(
-        examples['premise'],
-        examples['hypothesis'],
+        examples[premiseStr],
+        examples[hypothesisStr],
         truncation=True,
         max_length=max_seq_length,
         padding='max_length'
     )
 
-    tokenized_examples['label'] = examples['label']
+    tokenized_examples['label'] = examples[labelStr]
     return tokenized_examples
 
 
