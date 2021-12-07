@@ -33,8 +33,19 @@ def tsv2json(input_file, output_file):
         # and dump into file.
     filename = output_file
     with open(output_file, 'w', encoding='utf-8') as output_file:
-        output_file.write(json.dumps(arr, indent=4))
+        for example in arr:
+            json.dump(example, output_file)
+            output_file.write("\n")
     return filename
+
+
+def numerize(label):
+    if label == "entailment":
+        return 0
+    elif label == "neutral":
+        return 1
+    else:
+        return 2
 
 
 # This function preprocesses an NLI dataset, tokenizing premises and hypotheses.
@@ -50,7 +61,10 @@ def prepare_dataset_nli(examples, tokenizer, max_seq_length=None,
         padding='max_length'
     )
 
-    tokenized_examples['label'] = examples[labelStr]
+
+    tokenized_examples['label'] = list(map(numerize, examples[labelStr]))
+    #print(tokenized_examples['label'])
+
     return tokenized_examples
 
 

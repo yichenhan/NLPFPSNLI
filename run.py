@@ -2,7 +2,7 @@ import datasets
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, \
     AutoModelForQuestionAnswering, Trainer, TrainingArguments, HfArgumentParser
 from helpers import prepare_dataset_nli, prepare_train_dataset_qa, \
-    prepare_validation_dataset_qa, QuestionAnsweringTrainer, compute_accuracy, tsv2json
+    prepare_validation_dataset_qa, QuestionAnsweringTrainer, compute_accuracy, tsv2json, numerize
 import os
 import json
 
@@ -55,7 +55,7 @@ def main():
     training_args, args = argp.parse_args_into_dataclasses()
     
     if args.tsv:
-        args.dataset = tsv2json(args.dataset, "convertedTSVdata.json")
+        args.dataset = tsv2json(args.dataset, "convertedTSVdata.jsonl")
 
     if args.dataset.endswith('.json') or args.dataset.endswith('.jsonl'):
         dataset_id = None
@@ -95,7 +95,7 @@ def main():
             print("Sup bitch")
             prepare_train_dataset = prepare_eval_dataset = \
                 lambda exs: prepare_dataset_nli(exs, tokenizer, args.max_length,
-                                                premiseStr= 'sentence1', hypothesisStr='sentence2', labelStr ='gold_label')
+                        premiseStr= 'sentence1', hypothesisStr='sentence2', labelStr ='gold_label')
         else:
             prepare_train_dataset = prepare_eval_dataset = \
                 lambda exs: prepare_dataset_nli(exs, tokenizer, args.max_length)
@@ -107,7 +107,7 @@ def main():
     if dataset_id == ('snli',):
         # remove SNLI examples with no label
         dataset = dataset.filter(lambda ex: ex['label'] != -1)
-    
+
     train_dataset = None
     eval_dataset = None
     train_dataset_featurized = None
