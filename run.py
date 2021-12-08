@@ -70,10 +70,11 @@ def main():
     model_classes = {'qa': AutoModelForQuestionAnswering,
                      'nli': AutoModelForSequenceClassification}
     model_class = model_classes[args.task]
+    weak_model = None
     if args.weak_model:
         weak_model_class = model_classes[args.task]
         weak_model = weak_model_class.from_pretrained(args.weak_model, **task_kwargs)
-        weak_tokenizer = AutoTokenizer.from_pretrained(args.weak_model, use_fast=True)
+        # weak_tokenizer = AutoTokenizer.from_pretrained(args.weak_model, use_fast=True)
         
     # Initialize the model and tokenizer from the specified pretrained model/checkpoint
     model = model_class.from_pretrained(args.model, **task_kwargs)
@@ -92,9 +93,9 @@ def main():
         else:
             prepare_train_dataset = prepare_eval_dataset = \
                 lambda exs: prepare_dataset_nli(exs, tokenizer, args.max_length)
-        prepare_weak_train_dataset = prepare_weak_eval_dataset = \
-            lambda exs: prepare_dataset_nli(exs, weak_tokenizer, args.max_length,
-                premiseStr= 'sentence1', hypothesisStr='sentence2', labelStr ='gold_label')
+        # prepare_weak_train_dataset = prepare_weak_eval_dataset = \
+        #     lambda exs: prepare_dataset_nli(exs, weak_tokenizer, args.max_length,
+        #         premiseStr= 'sentence1', hypothesisStr='sentence2', labelStr ='gold_label')
         # prepare_eval_dataset = prepare_dataset_nli
     else:
         raise ValueError('Unrecognized task name: {}'.format(args.task))
