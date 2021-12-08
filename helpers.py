@@ -327,6 +327,8 @@ class NLITrainer(Trainer):
         self.weak_model = weak_model
         for param in self.weak_model.parameters():
             param.requires_grad = False
+        print(self.weak_model)
+        # .train(False) 
         
     def compute_loss(self, model, inputs, return_outputs=None):
         loss, output = super().compute_loss(model, inputs, return_outputs=True)
