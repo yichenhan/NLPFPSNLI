@@ -319,7 +319,19 @@ def postprocess_qa_predictions(examples,
         all_predictions[example["id"]] = predictions[0]["text"]
     return all_predictions
 
-
+class NLITrainer(Trainer):
+    def __init__(self, *args, eval_examples=None, weak_model, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.eval_examples = eval_examples
+        self.weak_model = weak_model
+        
+    def compute_loss(self, model, inputs, return_outputs=None):
+        loss, output = super().compute_loss(model, inputs, return_outputs=True)
+        bad_outputs = self.weak_model(**inputs)
+        print(bad_outputs)
+        return loss, output
+        
+    
 # Adapted from https://github.com/huggingface/transformers/blob/master/examples/pytorch/question-answering/trainer_qa.py
 class QuestionAnsweringTrainer(Trainer):
     def __init__(self, *args, eval_examples=None, **kwargs):

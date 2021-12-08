@@ -2,7 +2,7 @@ import datasets
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, \
     AutoModelForQuestionAnswering, Trainer, TrainingArguments, HfArgumentParser
 from helpers import prepare_dataset_nli, prepare_train_dataset_qa, \
-    prepare_validation_dataset_qa, QuestionAnsweringTrainer, compute_accuracy, tsv2json, numerize, data_load
+    prepare_validation_dataset_qa, QuestionAnsweringTrainer, compute_accuracy, tsv2json, numerize, data_load, NLITrainer
 import os
 import json
 
@@ -54,6 +54,11 @@ def main():
     argp.add_argument('--all_data', default=[], nargs='+',
                     help="""This arguement allows you to specify a list of data to train""")
 
+    argp.add_argument('--custom_loss', default=False, action = 'store_true',
+                    help="""This arguement allows you to specify a custom loss function""")
+    
+    argp.add_argument('--weak_model', type=str, default=None,
+                      help="""This argument enables ensemble debiasing""")
     
     training_args, args = argp.parse_args_into_dataclasses()
     dataset, eval_split = data_load(args)
@@ -65,12 +70,16 @@ def main():
     model_classes = {'qa': AutoModelForQuestionAnswering,
                      'nli': AutoModelForSequenceClassification}
     model_class = model_classes[args.task]
+    if args.weak_model:
+        weak_model_class = model_classes[args.task]
+        weak_model = weak_model_class.from_pretrained(args.weak_model, **task_kwargs)
+        weak_tokenizer = AutoTokenizer.from_pretrained(args.weak_model, use_fast=True)
+        
     # Initialize the model and tokenizer from the specified pretrained model/checkpoint
     model = model_class.from_pretrained(args.model, **task_kwargs)
     tokenizer = AutoTokenizer.from_pretrained(args.model, use_fast=True)
 
     # Select the dataset preprocessing function (these functions are defined in helpers.py)
-    print(args.lex_dataset)
     if args.task == 'qa':
         prepare_train_dataset = lambda exs: prepare_train_dataset_qa(exs, tokenizer)
         prepare_eval_dataset = lambda exs: prepare_validation_dataset_qa(exs, tokenizer)
@@ -83,6 +92,9 @@ def main():
         else:
             prepare_train_dataset = prepare_eval_dataset = \
                 lambda exs: prepare_dataset_nli(exs, tokenizer, args.max_length)
+        prepare_weak_train_dataset = prepare_weak_eval_dataset = \
+            lambda exs: prepare_dataset_nli(exs, weak_tokenizer, args.max_length,
+                premiseStr= 'sentence1', hypothesisStr='sentence2', labelStr ='gold_label')
         # prepare_eval_dataset = prepare_dataset_nli
     else:
         raise ValueError('Unrecognized task name: {}'.format(args.task))
@@ -94,6 +106,7 @@ def main():
     eval_dataset = None
     train_dataset_featurized = None
     eval_dataset_featurized = None
+    
     if training_args.do_train:
         train_dataset = dataset['train']
         if args.max_train_samples:
@@ -104,6 +117,7 @@ def main():
             num_proc=NUM_PREPROCESSING_WORKERS,
             remove_columns=train_dataset.column_names
         )
+    
     if training_args.do_eval:
         eval_dataset = dataset[eval_split]
         if args.max_eval_samples:
@@ -130,6 +144,8 @@ def main():
         compute_metrics = lambda eval_preds: metric.compute(
             predictions=eval_preds.predictions, references=eval_preds.label_ids)
     elif args.task == 'nli':
+        if args.custom_loss:
+            trainer_class = NLITrainer(weak_model = weak_model)
         compute_metrics = compute_accuracy
     
 
