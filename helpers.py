@@ -328,7 +328,7 @@ class NLITrainer(Trainer):
         # self.weak_model = kwargs.get('w_model', None)
         
     def compute_loss(self, model, inputs, return_outputs=None):
-        loss = super().compute_loss(model, inputs, return_outputs=True)
+        loss, output = super().compute_loss(model, inputs, return_outputs=True)
         
         device = torch.device("cuda:0")
         self.weak_model.to(device)
