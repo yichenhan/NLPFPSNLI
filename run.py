@@ -146,7 +146,7 @@ def main():
             predictions=eval_preds.predictions, references=eval_preds.label_ids)
     elif args.task == 'nli':
         if args.custom_loss:
-            trainer_class = NLITrainer(w_model = weak_model)
+            trainer_class = NLITrainer
         compute_metrics = compute_accuracy
     
 
@@ -164,6 +164,7 @@ def main():
         args=training_args,
         train_dataset=train_dataset_featurized,
         eval_dataset=eval_dataset_featurized,
+        weak_model=weak_model,
         tokenizer=tokenizer,
         compute_metrics=compute_metrics_and_store_predictions
     )
