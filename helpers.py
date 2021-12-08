@@ -320,7 +320,7 @@ def postprocess_qa_predictions(examples,
     return all_predictions
 
 class NLITrainer(Trainer):
-    def __init__(self, *args, eval_examples=None, weak_model, **kwargs):
+    def __init__(self, *args, eval_examples=None, weak_model=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.eval_examples = eval_examples
         self.weak_model = weak_model
