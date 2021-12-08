@@ -5,11 +5,37 @@ from transformers import Trainer, EvalPrediction
 from transformers.trainer_utils import PredictionOutput
 from typing import Tuple
 from tqdm.auto import tqdm
+import datasets
 
 QA_MAX_ANSWER_LENGTH = 30
 
 import json
-  
+
+def data_load(args):
+    if args.tsv:
+        args.dataset = tsv2json(args.dataset, "convertedTSVdata.jsonl")
+    if args.dataset.endswith('.json') or args.dataset.endswith('.jsonl'):
+        # Load from local json/jsonl file
+        dataset = datasets.load_dataset('json', data_files=args.dataset)
+        # By default, the "json" dataset loader places all examples in the train split,
+        # so if we want to use a jsonl file for evaluation we need to get the "train" split
+        # from the loaded dataset
+        eval_split = 'train'
+        
+        return dataset, eval_split
+    else:
+        default_datasets = {'qa': ('squad',), 'nli': ('snli',)}
+        dataset_id = tuple(args.dataset.split(':')) if args.dataset is not None else \
+            default_datasets[args.task]
+        # MNLI has two validation splits (one with matched domains and one with mismatched domains). Most datasets just have one "validation" split
+        eval_split = 'validation_matched' if dataset_id == ('glue', 'mnli') else 'validation'
+        # Load the raw data
+        dataset = datasets.load_dataset(*dataset_id)
+        if dataset_id == ('snli',):
+        # remove SNLI examples with no label
+            dataset = dataset.filter(lambda ex: ex['label'] != -1)
+        return dataset, eval_split
+        
 def tsv2json(input_file, output_file):
     arr = []
     file = open(input_file, 'r')

@@ -2,7 +2,7 @@ import datasets
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, \
     AutoModelForQuestionAnswering, Trainer, TrainingArguments, HfArgumentParser
 from helpers import prepare_dataset_nli, prepare_train_dataset_qa, \
-    prepare_validation_dataset_qa, QuestionAnsweringTrainer, compute_accuracy, tsv2json, numerize
+    prepare_validation_dataset_qa, QuestionAnsweringTrainer, compute_accuracy, tsv2json, numerize, data_load
 import os
 import json
 
@@ -50,29 +50,13 @@ def main():
                       help="""This argument overrides the default dataset with lexical inference analysis dataset""")
     argp.add_argument('--tsv', default=False, action = 'store_true',
                       help="""This arguement allows you to specify tsv to JSON conversion""")
+    
+    argp.add_argument('--all_data', default=[], nargs='+',
+                    help="""This arguement allows you to specify a list of data to train""")
 
     
     training_args, args = argp.parse_args_into_dataclasses()
-    
-    if args.tsv:
-        args.dataset = tsv2json(args.dataset, "convertedTSVdata.jsonl")
-
-    if args.dataset.endswith('.json') or args.dataset.endswith('.jsonl'):
-        dataset_id = None
-        # Load from local json/jsonl file
-        dataset = datasets.load_dataset('json', data_files=args.dataset)
-        # By default, the "json" dataset loader places all examples in the train split,
-        # so if we want to use a jsonl file for evaluation we need to get the "train" split
-        # from the loaded dataset
-        eval_split = 'train'
-    else:
-        default_datasets = {'qa': ('squad',), 'nli': ('snli',)}
-        dataset_id = tuple(args.dataset.split(':')) if args.dataset is not None else \
-            default_datasets[args.task]
-        # MNLI has two validation splits (one with matched domains and one with mismatched domains). Most datasets just have one "validation" split
-        eval_split = 'validation_matched' if dataset_id == ('glue', 'mnli') else 'validation'
-        # Load the raw data
-        dataset = datasets.load_dataset(*dataset_id)
+    dataset, eval_split = data_load(args)
     
     # NLI models need to have the output label count specified (label 0 is "entailed", 1 is "neutral", and 2 is "contradiction")
     task_kwargs = {'num_labels': 3} if args.task == 'nli' else {}
@@ -104,9 +88,7 @@ def main():
         raise ValueError('Unrecognized task name: {}'.format(args.task))
 
     print("Preprocessing data... (this takes a little bit, should only happen once per dataset)")
-    if dataset_id == ('snli',):
-        # remove SNLI examples with no label
-        dataset = dataset.filter(lambda ex: ex['label'] != -1)
+    
 
     train_dataset = None
     eval_dataset = None
@@ -212,6 +194,8 @@ def main():
                     example_with_prediction['predicted_label'] = int(eval_predictions.predictions[i].argmax())
                     f.write(json.dumps(example_with_prediction))
                     f.write('\n')
+
+
 
 
 if __name__ == "__main__":
