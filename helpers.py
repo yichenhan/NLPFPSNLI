@@ -6,6 +6,7 @@ from transformers.trainer_utils import PredictionOutput
 from typing import Tuple
 from tqdm.auto import tqdm
 import datasets
+import torch
 
 QA_MAX_ANSWER_LENGTH = 30
 
@@ -328,6 +329,9 @@ class NLITrainer(Trainer):
         
     def compute_loss(self, model, inputs, return_outputs=None):
         loss, output = super().compute_loss(model, inputs, return_outputs=True)
+        
+        device = torch.device("cuda:0")
+        self.weak_model.to(device)
         bad_outputs = self.weak_model(**inputs)
         print(bad_outputs)
         return loss, output
