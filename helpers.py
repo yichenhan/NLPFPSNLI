@@ -328,13 +328,16 @@ class NLITrainer(Trainer):
         # self.weak_model = kwargs.get('w_model', None)
         
     def compute_loss(self, model, inputs, return_outputs=None):
-        loss, output = super().compute_loss(model, inputs, return_outputs=True)
+        loss = super().compute_loss(model, inputs, return_outputs=True)
         
         device = torch.device("cuda:0")
         self.weak_model.to(device)
         bad_outputs = self.weak_model(**inputs)
+        print("BAD")
         print(bad_outputs)
-        return loss, output
+        print("GOOD :)")
+        print(loss)
+        return loss
         
     
 # Adapted from https://github.com/huggingface/transformers/blob/master/examples/pytorch/question-answering/trainer_qa.py
