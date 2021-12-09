@@ -7,6 +7,7 @@ from typing import Tuple
 from tqdm.auto import tqdm
 import datasets
 import torch
+import torch.nn as nn
 
 QA_MAX_ANSWER_LENGTH = 30
 
@@ -325,6 +326,8 @@ class NLITrainer(Trainer):
         super().__init__(*args, **kwargs)
         self.eval_examples = eval_examples
         self.weak_model = weak_model
+        
+        self.softmax = nn.Softmax(1)
         # .train(False) 
         
     def compute_loss(self, model, inputs, return_outputs=None):
@@ -335,6 +338,9 @@ class NLITrainer(Trainer):
         print(bad_outputs)
         print("GOOD :)")
         print(loss)
+        
+        x = self.softmax(bad_outputs.logits)
+        
         return loss
         
     
