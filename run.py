@@ -5,6 +5,7 @@ from helpers import prepare_dataset_nli, prepare_train_dataset_qa, \
     prepare_validation_dataset_qa, QuestionAnsweringTrainer, compute_accuracy, tsv2json, numerize, data_load, NLITrainer
 import os
 import json
+import torch
 
 NUM_PREPROCESSING_WORKERS = 2
 
@@ -72,8 +73,11 @@ def main():
     model_class = model_classes[args.task]
     weak_model = None
     if args.weak_model:
+        device = torch.device("cuda:0")
         weak_model_class = model_classes[args.task]
-        weak_model = weak_model_class.from_pretrained(args.weak_model, **task_kwargs).zero_grad()
+        weak_model = weak_model_class.from_pretrained(args.weak_model, **task_kwargs)
+        weak_model.to(device)
+        weak_model.zero_grad()
         # weak_tokenizer = AutoTokenizer.from_pretrained(args.weak_model, use_fast=True)
         
     # Initialize the model and tokenizer from the specified pretrained model/checkpoint

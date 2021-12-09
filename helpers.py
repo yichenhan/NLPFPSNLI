@@ -329,12 +329,8 @@ class NLITrainer(Trainer):
         
     def compute_loss(self, model, inputs, return_outputs=None):
         loss, output = super().compute_loss(model, inputs, return_outputs=True)
-        
-        device = torch.device("cuda:0")
-        self.weak_model.to(device)
         # with torch.no_grad():
         bad_outputs = self.weak_model(**inputs)
-            
         print("BAD")
         print(bad_outputs)
         print("GOOD :)")
