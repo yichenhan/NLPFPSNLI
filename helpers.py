@@ -335,10 +335,11 @@ class NLITrainer(Trainer):
         # with torch.no_grad():
         bad_outputs = self.weak_model(**inputs)
         
-        #print(output)
-        #print(inputs)
+        print(output['logits'])
+        
         
         labels = inputs['labels']
+        print(labels)
         x = self.softmax1(bad_outputs.logits)
         total_loss = 0.0
 
