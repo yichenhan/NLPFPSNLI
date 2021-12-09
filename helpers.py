@@ -342,7 +342,6 @@ class NLITrainer(Trainer):
         x = self.softmax1(bad_outputs.logits)
         total_loss = 0.0
 
-[
         for i in range(0, 8):
             weight = (1 - x[i][labels[i]])
             log_score = torch.log(self.softmax(output['logits'][i][labels[i]]))
