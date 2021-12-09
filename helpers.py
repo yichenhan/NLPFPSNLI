@@ -347,6 +347,7 @@ class NLITrainer(Trainer):
             loss = weight * log_score
             total_loss -= loss
 
+        print(total_loss)
         return total_loss
         
     
