@@ -97,10 +97,6 @@ def main():
         else:
             prepare_train_dataset = prepare_eval_dataset = \
                 lambda exs: prepare_dataset_nli(exs, tokenizer, args.max_length)
-        # prepare_weak_train_dataset = prepare_weak_eval_dataset = \
-        #     lambda exs: prepare_dataset_nli(exs, weak_tokenizer, args.max_length,
-        #         premiseStr= 'sentence1', hypothesisStr='sentence2', labelStr ='gold_label')
-        # prepare_eval_dataset = prepare_dataset_nli
     else:
         raise ValueError('Unrecognized task name: {}'.format(args.task))
 
