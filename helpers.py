@@ -334,14 +334,18 @@ class NLITrainer(Trainer):
         loss, output = super().compute_loss(model, inputs, return_outputs=True)
         # with torch.no_grad():
         bad_outputs = self.weak_model(**inputs)
-        print("BAD")
-        print(bad_outputs)
-        print("GOOD :)")
-        print(loss)
         
+        print(output)
+        print(inputs)
+        
+        labels = input['labels']
         x = self.softmax(bad_outputs.logits)
-        
-        return loss
+        total_loss = 0.0
+
+        for i in range(0, 8):
+            total_loss += (1 - x[i][labels[i]]) * outputs['loss'][i]
+
+        return total_loss
         
     
 # Adapted from https://github.com/huggingface/transformers/blob/master/examples/pytorch/question-answering/trainer_qa.py
