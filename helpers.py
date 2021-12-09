@@ -327,7 +327,7 @@ class NLITrainer(Trainer):
         self.eval_examples = eval_examples
         self.weak_model = weak_model
         
-        self.softmax = nn.Softmax(1)
+        self.softmax = nn.Softmax(0)
         # .train(False) 
         
     def compute_loss(self, model, inputs, return_outputs=None):
