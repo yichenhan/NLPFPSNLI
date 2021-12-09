@@ -332,8 +332,8 @@ class NLITrainer(Trainer):
         
         device = torch.device("cuda:0")
         self.weak_model.to(device)
-        with torch.no_grad():
-            bad_outputs = self.weak_model(**inputs)
+        # with torch.no_grad():
+        bad_outputs = self.weak_model(**inputs)
             
         print("BAD")
         print(bad_outputs)

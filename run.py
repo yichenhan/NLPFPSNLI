@@ -73,7 +73,7 @@ def main():
     weak_model = None
     if args.weak_model:
         weak_model_class = model_classes[args.task]
-        weak_model = weak_model_class.from_pretrained(args.weak_model, **task_kwargs)
+        weak_model = weak_model_class.from_pretrained(args.weak_model, **task_kwargs).zero_grad()
         # weak_tokenizer = AutoTokenizer.from_pretrained(args.weak_model, use_fast=True)
         
     # Initialize the model and tokenizer from the specified pretrained model/checkpoint
