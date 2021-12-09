@@ -341,7 +341,7 @@ class NLITrainer(Trainer):
         labels = inputs['labels']
         print(labels)
         x = self.softmax1(bad_outputs.logits)
-        softmax_outputs = self.softmax1(outputs['logits'])
+        softmax_outputs = self.softmax1(output['logits'])
         total_loss = 0.0
 
         for i in range(0, 8):
