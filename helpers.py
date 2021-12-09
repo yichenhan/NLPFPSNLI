@@ -328,7 +328,7 @@ class NLITrainer(Trainer):
         self.weak_model = weak_model
         
         self.softmax = nn.Softmax(0)
-        # .train(False) 
+        self.softmax1 = nn.Softmax(1)
         
     def compute_loss(self, model, inputs, return_outputs=None):
         loss, output = super().compute_loss(model, inputs, return_outputs=True)
@@ -339,7 +339,7 @@ class NLITrainer(Trainer):
         #print(inputs)
         
         labels = inputs['labels']
-        x = self.softmax(bad_outputs.logits)
+        x = self.softmax1(bad_outputs.logits)
         total_loss = 0.0
 
 
